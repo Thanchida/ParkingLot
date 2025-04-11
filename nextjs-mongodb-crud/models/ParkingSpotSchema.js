@@ -1,5 +1,4 @@
 import mongoose from "mongoose";
-import ParkingSpot from "./ParkingSpot";
 
 const ParkingSpotSchema = new mongoose.Schema({
     licensePlate: { 
@@ -22,6 +21,10 @@ const ParkingSpotSchema = new mongoose.Schema({
         type: String, 
         required: true,
     },
+    spotId: {
+        type: Number,
+        required: true,
+    }
 });
 
 export default mongoose.models.ParkingSpot || mongoose.model("ParkingSpot", ParkingSpotSchema);

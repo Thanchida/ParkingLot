@@ -71,6 +71,7 @@ export default function Home() {
     const level = selectedSpot.level.floor;
     const spotSize = selectedSpot.spotSize;
     const spotNumber = selectedSpot.spotNumber;
+    const spotId = selectedSpot.spotId;
   
     if (!selectedSpot.canFitVehicle(vehicle)) {
       console.log("This vehicle cannot fit in the selected spot.");
@@ -89,6 +90,7 @@ export default function Home() {
           level: level,
           spotNumber: spotNumber,
           carType: vehicle.type,
+          spotId: spotId,
         }),
       });
   
@@ -159,8 +161,18 @@ export default function Home() {
   
       if (res.ok) {
         const result = await res.json();
-        console.log("Exit Data:", result.data);
-        setExitData(result.data);
+        console.log("Exit spotId:", result.data);
+        const deletedSpot = result.data.deletedSpot;
+        service.getAllSpots().forEach((spot) => {
+          if (spot.spotId === deletedSpot.spotId) {
+            console.log(spot.spotId === deletedSpot.spotId);
+            service.removeVehicle(spot.vehicle, spot);
+          }
+        });
+        const updatedAvailableSpots = availableSpots.filter(
+          (spot) => spot.spotNumber !== selectedSpot.spotNumber
+        );        
+        setAvailableSpots(updatedAvailableSpots);
       } else {
         const err = await res.json();
         alert(err.message || "Car not found.");

@@ -10,6 +10,16 @@ export default class ParkingService {
     this.lot = sharedParkingLot;
   }
 
+  getAllSpots() {
+    const spots = [];
+    this.lot.levels.forEach((lvl) => {
+        lvl.spots.forEach((spot) => {
+          spots.push(spot);
+        });
+    });
+    return spots;
+  }
+
   getSpots(level) {
     const spots = [];
     this.lot.levels.forEach((lvl) => {
@@ -44,6 +54,7 @@ export default class ParkingService {
   }
 
   removeVehicle(vehicle, spot) {
+    console.log("remove", spot);
     return spot.removeVehicle(vehicle);
   }
 }

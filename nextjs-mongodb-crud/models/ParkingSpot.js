@@ -1,5 +1,7 @@
 export default class ParkingSpot {
+    static nextId = 1;
     constructor(level, row, spotNumber, spotSize) {
+      this.spotId = ParkingSpot.nextId++;
       this.level = level;
       this.row = row;
       this.spotNumber = spotNumber;

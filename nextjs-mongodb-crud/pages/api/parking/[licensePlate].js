@@ -1,5 +1,6 @@
 import dbConnect from '../../../lib/mongodb';
 import ParkingSpotSchema from '@/models/ParkingSpotSchema';
+import ParkingSpot from '@/models/ParkingSpot';
 
 export default async function handler(req, res) {
   const { query: { licensePlate }, method } = req;
@@ -19,17 +20,18 @@ export default async function handler(req, res) {
       }
       break;
 
-    case 'DELETE':
-      try {
-        const deletedSpot = await ParkingSpotSchema.deleteOne({ 'licensePlate': licensePlate });
-        if (!deletedSpot) {
-          return res.status(400).json({ success: false });
+      case 'DELETE':
+        try {
+          const deletedSpot = await ParkingSpotSchema.findOneAndDelete({ licensePlate: licensePlate });
+          if (!deletedSpot) {
+            return res.status(400).json({ success: false, message: 'Spot not found' });
+          }
+          res.status(200).json({ success: true, data: { deletedSpot } });
+        } catch (error) {
+          console.error(error);
+          res.status(400).json({ success: false, message: 'Deletion failed' });
         }
-        res.status(200).json({ success: true, data: {} });
-      } catch (error) {
-        res.status(400).json({ success: false });
-      }
-      break;
+        break;      
 
     default:
       res.status(400).json({ success: false });
