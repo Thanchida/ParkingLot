@@ -8,11 +8,15 @@ export default class ParkingSpot {
     }
   
     isAvailable() {
+      console.log("Checking isAvailable:", this.vehicle);
       return this.vehicle === null;
     }
   
     canFitVehicle(vehicle) {
       console.log('check', vehicle);
+      console.log(this);
+      console.log(this.isAvailable());
+      console.log(vehicle.canFitInSpot(this));
       return this.isAvailable() && vehicle.canFitInSpot(this);
     }
   
@@ -23,6 +27,7 @@ export default class ParkingSpot {
       }
       this.vehicle = vehicle;
       vehicle.parkInSpot(this);
+      console.log('parked', this);
       return true;
     }
   

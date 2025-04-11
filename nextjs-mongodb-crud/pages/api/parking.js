@@ -1,9 +1,10 @@
-// pages/api/items.js
 import dbConnect from '../../lib/mongodb';
 import ParkingSpotSchema from '@/models/ParkingSpotSchema';
 
 export default async function handler(req, res) {
+  console.log('----------');
   await dbConnect();
+  console.log('db connected!');
 
   const { method } = req;
 
@@ -17,10 +18,11 @@ export default async function handler(req, res) {
       }
       break;
     case 'POST':
-      console.log(req);
+      console.log("req", req.body);
       try {
         const spots = await ParkingSpotSchema.create(req.body);
-        res.status(201).json({ success: true, data: item });
+        console.log(spots);
+        res.status(201).json({ success: true, data: spots });
       } catch (error) {
         res.status(400).json({ success: false });
       }

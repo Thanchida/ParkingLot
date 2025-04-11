@@ -31,7 +31,6 @@ export default class Level {
       
         this.availableSpots = numberSpots;
       }
-      
   
     availableSpotsCount() {
       return this.availableSpots;

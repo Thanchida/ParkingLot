@@ -2,7 +2,7 @@ import { useState, useEffect } from 'react';
 import ParkingService from '@/services/ParkingService';
 import VehicleFactory from '@/services/VehicleFactory';
 
-const PARKING_URL = 'api/parking/';
+const PARKING_URL = 'api/parking';
 
 export default function Home() {
   const service = new ParkingService();
@@ -14,6 +14,7 @@ export default function Home() {
   const [level, setLevel] = useState();
   const [selectedSpot, setSelectedSpot] = useState('');
   const [licensePlate, setLicensePlate] = useState('');
+  const [exitData, setExitData] = useState('');
 
   useEffect(() => {
     if (type) {
@@ -40,6 +41,10 @@ export default function Home() {
     console.log("license plate has changed!");
   }, [licensePlate]);
 
+  useEffect(() => {
+    console.log("Exit data:", exitData);
+  }, [exitData])
+
 
   const getAllSpots = () => {
     if (!level) return;
@@ -61,8 +66,7 @@ export default function Home() {
   
 
   const handlePark = async (selectedSpot) => {
-    console.log(selectedSpot);
-    if (!selectedSpot.park(vehicle)) return;
+    console.log('id', selectedSpot);
 
     const level = selectedSpot.level.floor;
     const spotSize = selectedSpot.spotSize;
@@ -80,7 +84,7 @@ export default function Home() {
           'Content-Type': 'application/json',
         },
         body: JSON.stringify({
-          licensePlate: vehicle.licensePlate,
+          licensePlate: licensePlate,
           spotSize: spotSize,
           level: level,
           spotNumber: spotNumber,
@@ -89,6 +93,14 @@ export default function Home() {
       });
   
       if (res.ok) {
+        service.parkVehicle(vehicle, selectedSpot);
+        console.log('Vehicle parked successfully!');
+
+        const updatedAvailableSpots = availableSpots.filter(
+          (spot) => spot.spotNumber !== selectedSpot.spotNumber
+        );
+        setAvailableSpots(updatedAvailableSpots);
+  
         console.log('Vehicle parked successfully!');
         setSelectedSpot('');
       } else {
@@ -109,13 +121,60 @@ export default function Home() {
   }, {});
   
 
+  const handleSubmit = async (event) => {
+    event.preventDefault();
+  
+    try {
+      const res = await fetch(`/api/parking/${licensePlate}`, {
+        method: 'GET',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+      });
+  
+      if (res.ok) {
+        const result = await res.json();
+        console.log("Exit Data:", result.data);
+        setExitData(result.data);
+      } else {
+        const err = await res.json();
+        alert(err.message || "Car not found.");
+      }
+    } catch (error) {
+      console.error("Error fetching exit data:", error);
+    }
+  };
+  
+  
+  const handleLeave = async (event) => {
+    event.preventDefault();
+  
+    try {
+      const res = await fetch(`/api/parking/${licensePlate}`, {
+        method: 'DELETE',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+      });
+  
+      if (res.ok) {
+        const result = await res.json();
+        console.log("Exit Data:", result.data);
+        setExitData(result.data);
+      } else {
+        const err = await res.json();
+        alert(err.message || "Car not found.");
+      }
+    } catch (error) {
+      console.error("Error fetching exit data:", error);
+    }
+  }
   return (
     <div className="min-h-screen bg-gray-50 p-6">
       <div className="max-w-6xl mx-auto">
         <h1 className="text-4xl font-bold text-gray-800 mb-10 text-center">
           🚗 Parking Spot Selector
         </h1>
-
         <div className="bg-white p-6 rounded-lg shadow-md mb-10">
           <h2 className="text-xl font-semibold mb-4 text-gray-700">Enter Vehicle Details</h2>
           <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
@@ -146,7 +205,47 @@ export default function Home() {
             ))}
           </select>
         </div>
-
+        <div className="bg-white p-6 rounded-lg shadow-md">
+          <h2 className="text-xl font-semibold text-gray-700 mb-4">⛔️ Leave the Parking Spot</h2>
+          <div className='flex justify-between'>
+            <div>
+            <form onSubmit={handleSubmit}>
+              <div className="flex items-center gap-4">
+                <input
+                  type="text"
+                  name="plate"
+                  value={licensePlate}
+                  onChange={(e) => setLicensePlate(e.target.value)}
+                  className="flex-1 rounded-lg px-90 p-4 border border-gray-300 text-gray-700 placeholder-gray-400 shadow-sm focus:ring-2 focus:ring-blue-300 focus:outline-none"
+                  placeholder="Enter Car Plate"
+                />
+                <button
+                  type="submit"
+                  className="bg-blue-500 text-white rounded-lg px-6 py-3 text-lg shadow-md hover:bg-red-500 transition-all duration-300"
+                >
+                  Enter
+                </button>
+              </div>
+            </form>
+            <div className='bg-white rounded-lg shadow-lg mt-4 p-4'>
+            {exitData && exitData.length > 0 ? 
+            <div>
+              <p className='text-gray-700 text-lg font-semibold'>Level: {exitData[0].level}</p>
+              <p>Plate: {exitData[0].licensePlate}</p>
+              <p>Spot No: {exitData[0].spotNumber}</p>
+              <p>Car Type: {exitData[0].carType}</p>
+              <button
+                onClick={handleLeave}
+                className="bg-red-600 text-white rounded-lg px-4 py-2 text-lg shadow-md hover:bg-red-500 transition-all duration-300"
+                >
+                Leave
+            </button>
+            </div> : null}
+            </div>
+            </div>
+          </div>
+        </div>
+        
         <div className="bg-white p-6 rounded-lg shadow-md">
           <h2 className="text-xl font-semibold text-gray-700 mb-4">🅿️ Available Parking Spots</h2>
           <div className="flex flex-wrap gap-6">
@@ -176,13 +275,13 @@ export default function Home() {
               ))}
           </div>
           <div className="flex justify-center mt-6">
-            <button
+            {selectedSpot ? <button
               className="bg-[#03C755] text-white rounded-lg px-25 py-3 text-lg shadow-md hover:bg-[#00b544] transition-all duration-300"
               onClick={() => handlePark(selectedSpot)}
               disabled={!selectedSpot}
             >
               Park
-            </button>
+            </button>: ""}
           </div>
         </div>
       </div>

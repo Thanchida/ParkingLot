@@ -1,8 +1,13 @@
 import ParkingLot from '@/models/ParkingLot';
 
+let sharedParkingLot = null;
+
 export default class ParkingService {
   constructor() {
-    this.lot = new ParkingLot();
+    if (!sharedParkingLot) {
+      sharedParkingLot = new ParkingLot();
+    }
+    this.lot = sharedParkingLot;
   }
 
   getSpots(level) {
@@ -36,5 +41,9 @@ export default class ParkingService {
 
   parkVehicle(vehicle, spot) {
     return spot.park(vehicle);
+  }
+
+  removeVehicle(vehicle, spot) {
+    return spot.removeVehicle(vehicle);
   }
 }

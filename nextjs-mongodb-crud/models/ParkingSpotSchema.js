@@ -1,13 +1,13 @@
 import mongoose from "mongoose";
+import ParkingSpot from "./ParkingSpot";
 
 const ParkingSpotSchema = new mongoose.Schema({
     licensePlate: { 
         type: String, 
-        required: false 
+        required: true
     },
     spotSize: { 
         type: String, 
-        enum: ['Motorcycle', 'Compact', 'Large'], 
         required: true 
     },
     level: { 
@@ -20,9 +20,8 @@ const ParkingSpotSchema = new mongoose.Schema({
     },
     carType: { 
         type: String, 
-        enum: ['Motorcycle', 'Car', 'Bus'], 
-        required: false 
-    }
+        required: true,
+    },
 });
 
-export default mongoose.model("ParkingSpot", ParkingSpotSchema);
+export default mongoose.models.ParkingSpot || mongoose.model("ParkingSpot", ParkingSpotSchema);
