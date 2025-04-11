@@ -45,6 +45,10 @@ export default function Home() {
     console.log("Exit data:", exitData);
   }, [exitData])
 
+  useEffect(() => {
+    console.log("available spot updated:", availableSpots);
+  }, [availableSpots])
+
 
   const getAllSpots = () => {
     if (!level) return;
@@ -168,11 +172,8 @@ export default function Home() {
             console.log(spot.spotId === deletedSpot.spotId);
             service.removeVehicle(spot.vehicle, spot);
           }
-        });
-        const updatedAvailableSpots = availableSpots.filter(
-          (spot) => spot.spotNumber !== selectedSpot.spotNumber
-        );        
-        setAvailableSpots(updatedAvailableSpots);
+        });      
+        setAvailableSpots(service.getSpots());
       } else {
         const err = await res.json();
         alert(err.message || "Car not found.");
