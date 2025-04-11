@@ -1,6 +1,6 @@
 import ParkingSpot from "./ParkingSpot";
 
-class Level {
+export default class Level {
     constructor(flr, numberSpots) {
         this.floor = flr;
         this.spots = [];
@@ -100,5 +100,4 @@ class Level {
       this.availableSpots++;
     }
   }
-export default Level;
   

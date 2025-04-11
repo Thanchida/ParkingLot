@@ -8,7 +8,8 @@ class Motorcycle extends Vehicle {
   }
 
   canFitInSpot(spot) {
-    return true; // Motorcycle can park anywhere
+    console.log('check');
+    return true;
   }
 
   print() {

@@ -1,19 +1,14 @@
-import { useState, useEffect, use } from 'react';
-import ParkingLot from '@/models/ParkingLot';
-import Level from '@/models/Level';
-import ParkingSpot from '@/models/ParkingSpot';
-import Vehicle from '@/models/Vehicle';
-import Motorcycle from '@/models/Motorcycle';
-import Car from '@/models/Car';
-import Bus from '@/models/Bus';
+import { useState, useEffect } from 'react';
+import ParkingService from '@/services/ParkingService';
+import VehicleFactory from '@/services/VehicleFactory';
 
 const PARKING_URL = 'api/parking/';
 
 export default function Home() {
-  const [spots, setSpots] = useState([]);
-  const [filteredSpots, setFilteredSpots] = useState([]);
-  const [items, setItems] = useState([]);
-  const [form, setForm] = useState({ name: '', description: '' });
+  const service = new ParkingService();
+  const factory = new VehicleFactory();
+  const [allSpots, setAllSpots] = useState([]);
+  const [availableSpots, setAvailableSpots] = useState([]);
   const [vehicle, setVehicle] = useState('');
   const [type, setType] = useState('');
   const [level, setLevel] = useState();
@@ -21,76 +16,59 @@ export default function Home() {
   const [licensePlate, setLicensePlate] = useState('');
 
   useEffect(() => {
-    console.log("vehicle type has changed!")
-    createVehicle(type);
+    if (type) {
+      const v = factory.create(type);
+      setLicensePlate(licensePlate);
+      setVehicle(v);
+    }
   }, [type]);
 
   useEffect(() => {
+    if (!level) return;
+    console.log("level has changed!");
+    getAllSpots();
+  }, [level]);
+
+  useEffect(() => {
+    if (!vehicle || !level) return;
     console.log("vehicle has changed!");
-  }, [vehicle]);
+    getAvailableSpots();
+  }, [vehicle, level]);
+  
 
   useEffect(() => {
     console.log("license plate has changed!");
   }, [licensePlate]);
 
-  useEffect(() => {
 
-  },[filteredSpots])
+  const getAllSpots = () => {
+    if (!level) return;
+    console.log("vehicle", vehicle);
+    console.log("level", level);
+    const spots = service.getSpots(level);
+    console.log("spots: ", spots);
+    setAllSpots(spots);
+  }
 
-  useEffect(() => {
-    const lot = new ParkingLot();
-    const allSpots = [];
-
-    lot.levels.forEach((level) => {
-      level.spots.forEach((spot) => {
-        allSpots.push({
-          spotObj: spot,
-          level: level.floor,
-          row: spot.getRow(),
-          spotNumber: spot.getSpotNumber(),
-          spotSize: spot.getSize(),
-          isAvailable: spot.isAvailable(),
-        });
-      });
-    });
-
-    setSpots(allSpots);
-    setFilteredSpots(allSpots);
-    fetchItems();
-  }, []);
-
-  useEffect(() => {
-    console.log(level);
-    if (level) {
-      const filtered = spots.filter((spot) => spot.level === level);
-      setFilteredSpots(filtered);
-    } else {
-      setFilteredSpots(spots);
-    }
-  }, [level, spots]);
-  
-  const createVehicle = (type) => {
-    let v;
-    if (type === 'Motorcycle') {
-      v = new Motorcycle();
-    } else if (type === 'Car') {
-      v = new Car();
-    } else if (type === 'Bus') {
-      v = new Bus();
-    } else {
-      v = new Vehicle(type);
-    }
-    setVehicle(v);
+  const getAvailableSpots = () => {
+    if (!vehicle || !level) return;
+    console.log("vehicle", vehicle);
+    console.log("level", level);
+    const spots = service.getAvailableSpots(vehicle, level);
+    console.log("spots: ", spots);
+    setAvailableSpots(spots);
   };
+  
 
   const handlePark = async (selectedSpot) => {
-    if (!selectedSpot) return;
+    console.log(selectedSpot);
+    if (!selectedSpot.park(vehicle)) return;
+
+    const level = selectedSpot.level.floor;
+    const spotSize = selectedSpot.spotSize;
+    const spotNumber = selectedSpot.spotNumber;
   
-    // Extract necessary properties from the selected spot to avoid circular references
-    const { spotNumber, level, spotSize } = selectedSpot;
-  
-    // Check if vehicle can fit the spot (assuming canFitVehicle is a method of ParkingSpot)
-    if (!selectedSpot.spotObj.canFitVehicle(vehicle)) {
+    if (!selectedSpot.canFitVehicle(vehicle)) {
       console.log("This vehicle cannot fit in the selected spot.");
       return;
     }
@@ -102,17 +80,16 @@ export default function Home() {
           'Content-Type': 'application/json',
         },
         body: JSON.stringify({
-          licensePlate: vehicle.licensePlate, // Use vehicle's license plate
+          licensePlate: vehicle.licensePlate,
           spotSize: spotSize,
-          level: level, // Only send the level number, not the entire level object
-          spotNumber: spotNumber, // Send spot number, not the entire spot object
-          carType: vehicle.type, // Vehicle type (e.g., Car, Motorcycle, etc.)
+          level: level,
+          spotNumber: spotNumber,
+          carType: vehicle.type,
         }),
       });
   
       if (res.ok) {
         console.log('Vehicle parked successfully!');
-        // Reset the selected spot after parking
         setSelectedSpot('');
       } else {
         console.log('Failed to park the vehicle.');
@@ -121,36 +98,9 @@ export default function Home() {
       console.log('Error parking vehicle:', error);
     }
   };
-  
 
-  const fetchItems = async () => {
-    const res = await fetch('/api/items');
-    const data = await res.json();
-    setItems(data.data);
-  };
 
-  const handleChange = (e) => {
-    setForm({ ...form, [e.target.name]: e.target.value });
-  };
-
-  const handleSubmit = async (e) => {
-    e.preventDefault();
-    try {
-      await fetch('/api/items', {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-        },
-        body: JSON.stringify(form),
-      });
-      fetchItems();
-      setForm({ name: '', description: '' });
-    } catch (error) {
-      console.log(error);
-    }
-  };
-
-  const groupedByRow = filteredSpots.reduce((acc, spot) => {
+  const groupedByRow = allSpots.reduce((acc, spot) => {
     if (!acc[spot.row]) {
       acc[spot.row] = [];
     }
@@ -206,19 +156,21 @@ export default function Home() {
                 <div key={row} className="w-full mb-6">
                   <h3 className="text-lg font-medium text-gray-600 mb-2">Row {row}</h3>
                   <div className="flex flex-wrap gap-4">
-                    {groupedByRow[row].map((spot, index) => (
+                  {groupedByRow[row].map((spot, index) => {
+                    const isSpotAvailable = availableSpots.some(s => s.spotNumber === spot.spotNumber);
+                    return (
                       <button
                         key={index}
-                        className={`p-4 border rounded-lg ${
-                          spot.spotObj.canFitVehicle(vehicle)
-                            ? 'border-green-300 bg-green-50'
-                            : 'border-red-300 bg-red-50'
-                        } shadow-sm flex-grow ${spot.spotObj == selectedSpot ? "bg-green-300": ""}`}
-                        onClick={() => setSelectedSpot(spot.spotObj)}
+                        className={`p-4 border rounded-lg ${isSpotAvailable
+                          ? 'border-green-300 bg-green-50'
+                          : 'border-red-300 bg-red-50'
+                        } shadow-sm flex-grow ${spot === selectedSpot ? "bg-green-300" : ""}`}
+                        onClick={() => setSelectedSpot(spot)}
                       >
                         <p>{spot.spotNumber}</p>
                       </button>
-                    ))}
+                    );
+                  })}
                   </div>
                 </div>
               ))}

@@ -1,4 +1,4 @@
-class ParkingSpot {
+export default class ParkingSpot {
     constructor(level, row, spotNumber, spotSize) {
       this.level = level;
       this.row = row;
@@ -12,6 +12,7 @@ class ParkingSpot {
     }
   
     canFitVehicle(vehicle) {
+      console.log('check', vehicle);
       return this.isAvailable() && vehicle.canFitInSpot(this);
     }
   
@@ -61,4 +62,3 @@ class ParkingSpot {
       return this.spotNumber;
     }
   }
-export default ParkingSpot;

@@ -1,6 +1,6 @@
 import Level from "./Level";
 
-class ParkingLot {
+export default class ParkingLot {
     constructor() {
         this.NUM_LEVELS = 5;
         this.levels = [];
@@ -19,4 +19,3 @@ class ParkingLot {
         return false;
     }
 }
-export default ParkingLot;

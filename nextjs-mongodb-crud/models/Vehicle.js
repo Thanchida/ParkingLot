@@ -1,4 +1,4 @@
-class Vehicle {
+export default class Vehicle {
     constructor(type, size, licensePlate) {
       this.type = type;
       this.size = size;
@@ -17,4 +17,3 @@ class Vehicle {
       console.log(`Vehicle Type: ${this.type}`);
     }
 }
-export default Vehicle;
