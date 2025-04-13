@@ -31,38 +31,30 @@ export async function dbConnect() {
   return cached.conn;
 }
 
-export async function saveParkingLotData(levels) {
+export async function saveParkingLotData(spot) {
   try {
     await dbConnect();
-
-    for (const level of levels) {
-        const { floor, spots } = level;
-        console.log(`Floor ${floor}, Spots:`, spots);
-      
-        if (!Array.isArray(spots)) {
-          console.warn(`⚠️ spots ไม่ใช่ array บนชั้น ${floor}`);
-          continue;
-        }
-      
-        for (const spot of spots) {
-          const { spotId, row, spotNumber, spotSize, vehicle } = spot;
-      
-          const parkingLot = new ParkingLotSchema({
-            spotId,
-            level: floor,
-            row,
-            spotNumber,
-            spotSize,
-            vehicle,
-          });
-      
-          await parkingLot.save();
-        }
-      }
-      
-
+    const parkingLot = new ParkingLotSchema(spot);
+    await parkingLot.save();
     console.log('Parking lot data saved successfully!');
-  } catch (error) {
+    }catch (error) {
     console.error('Error saving parking lot data:', error);
   }
 }
+
+export async function getParkingLotData() {
+  try {
+    const parkingLot = await ParkingLotSchema.find();
+    console.log('Parking lot data loaded successfully!');
+    
+    if (!parkingLot || parkingLot.length === 0) {
+      return null;
+    }
+
+    return parkingLot;
+  } catch (error) {
+    console.error('Error loading parking lot data:', error);
+    return null;
+  }
+}
+
