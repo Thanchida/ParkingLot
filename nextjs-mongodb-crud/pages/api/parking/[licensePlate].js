@@ -1,4 +1,4 @@
-import dbConnect from '../../../lib/mongodb';
+import { dbConnect } from '@/lib/mongodb';
 import ParkingSpotSchema from '@/models/ParkingSpotSchema';
 import ParkingSpot from '@/models/ParkingSpot';
 

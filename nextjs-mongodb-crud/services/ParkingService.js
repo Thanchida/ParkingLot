@@ -1,6 +1,7 @@
 import ParkingLot from '@/models/ParkingLot';
 
 let sharedParkingLot = null;
+const SAVE_URL = '/api/save';
 
 export default class ParkingService {
   constructor() {
@@ -8,6 +9,17 @@ export default class ParkingService {
       sharedParkingLot = new ParkingLot();
     }
     this.lot = sharedParkingLot;
+  }
+
+  async init() {
+    const res = await fetch(SAVE_URL, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ levels: this.lot.levels }),
+    });
+    if (!res.ok) {
+      console.error("Failed to save parking lot data");
+    }
   }
 
   getAllSpots() {

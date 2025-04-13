@@ -173,7 +173,7 @@ export default function Home() {
             service.removeVehicle(spot.vehicle, spot);
           }
         });      
-        setAvailableSpots(service.getSpots());
+        getAvailableSpots();
       } else {
         const err = await res.json();
         alert(err.message || "Car not found.");
