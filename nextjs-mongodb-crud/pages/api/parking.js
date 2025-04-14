@@ -12,7 +12,7 @@ export default async function handler(req, res) {
     case 'GET':
       try {
         const spots = await ParkingSpotSchema.find({});
-        res.status(200).json({ success: true, data: items });
+        res.status(200).json({ success: true, data: spots });
       } catch (error) {
         res.status(400).json({ success: false });
       }

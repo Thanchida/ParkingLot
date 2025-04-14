@@ -7,35 +7,9 @@ export default class ParkingService {
   constructor() {
     if (!sharedParkingLot) {
       sharedParkingLot = new ParkingLot();
-      this.init();
     }
     this.lot = sharedParkingLot;
   }
-
-  async init() {
-    const spots = sharedParkingLot.levels.flatMap((level) => level.spots);
-    console.log('spots', spots);
-  
-    for (const spot of spots) {
-      const res = await fetch(SAVE_URL, {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({
-          spotId: spot.spotId,
-          level: spot.level.floor,
-          row: spot.row,
-          spotNumber: spot.spotNumber,
-          spotSize: spot.spotSize,
-          vehicle: null
-        }),
-      });
-  
-      if (!res.ok) {
-        console.error("Failed to save parking lot data");
-      }
-    }
-  }
-  
 
   getAllSpots() {
     const spots = [];

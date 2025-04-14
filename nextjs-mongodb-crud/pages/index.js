@@ -15,6 +15,7 @@ export default function Home() {
   const [selectedSpot, setSelectedSpot] = useState('');
   const [licensePlate, setLicensePlate] = useState('');
   const [exitData, setExitData] = useState('');
+  const [allParkedSpot, setAllParkedSpot] = useState([]);
 
   useEffect(() => {
     if (type) {
@@ -49,29 +50,44 @@ export default function Home() {
     console.log("available spot updated:", availableSpots);
   }, [availableSpots])
 
+  useEffect(() => {
+    getParkedSpot();
+    console.log('parked spot', allParkedSpot);
+  }, []);
+
+  const getParkedSpot = async () => {
+    try {
+      const res = await fetch(PARKING_URL, {
+        method: 'GET',
+        headers: {
+          'Content-Type': 'application/json',
+        }
+      });
+      if (res.ok) {
+        const result = await res.json();
+        setAllParkedSpot(result.data);
+        console.log('Updated parked spot:', result.data);
+      }
+    } catch (error) {
+      console.log(error);
+    }
+  };
+  
 
   const getAllSpots = () => {
     if (!level) return;
-    console.log("vehicle", vehicle);
-    console.log("level", level);
     const spots = service.getSpots(level);
-    console.log("spots: ", spots);
     setAllSpots(spots);
   }
 
   const getAvailableSpots = () => {
     if (!vehicle || !level) return;
-    console.log("vehicle", vehicle);
-    console.log("level", level);
     const spots = service.getAvailableSpots(vehicle, level);
-    console.log("spots: ", spots);
     setAvailableSpots(spots);
   };
   
 
   const handlePark = async (selectedSpot) => {
-    console.log('id', selectedSpot);
-
     const level = selectedSpot.level.floor;
     const spotSize = selectedSpot.spotSize;
     const spotNumber = selectedSpot.spotNumber;
@@ -106,6 +122,7 @@ export default function Home() {
           (spot) => spot.spotNumber !== selectedSpot.spotNumber
         );
         setAvailableSpots(updatedAvailableSpots);
+        getParkedSpot();
   
         console.log('Vehicle parked successfully!');
         setSelectedSpot('');
@@ -140,7 +157,6 @@ export default function Home() {
   
       if (res.ok) {
         const result = await res.json();
-        console.log("Exit Data:", result.data);
         setExitData(result.data);
       } else {
         const err = await res.json();
@@ -165,15 +181,14 @@ export default function Home() {
   
       if (res.ok) {
         const result = await res.json();
-        console.log("Exit spotId:", result.data);
         const deletedSpot = result.data.deletedSpot;
         service.getAllSpots().forEach((spot) => {
           if (spot.spotId === deletedSpot.spotId) {
-            console.log(spot.spotId === deletedSpot.spotId);
             service.removeVehicle(spot.vehicle, spot);
           }
         });      
         getAvailableSpots();
+        getParkedSpot();
       } else {
         const err = await res.json();
         alert(err.message || "Car not found.");
@@ -269,7 +284,9 @@ export default function Home() {
                   <h3 className="text-lg font-medium text-gray-600 mb-2">Row {row}</h3>
                   <div className="flex flex-wrap gap-4">
                   {groupedByRow[row].map((spot, index) => {
-                    const isSpotAvailable = availableSpots.some(s => s.spotNumber === spot.spotNumber);
+                    const isSpotAvailable =
+                    availableSpots.some(s => s.spotId === spot.spotId) &&
+                    !allParkedSpot.some(p => p.spotId === spot.spotId);                  
                     return (
                       <button
                         key={index}
