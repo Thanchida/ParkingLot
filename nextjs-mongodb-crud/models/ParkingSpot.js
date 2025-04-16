@@ -41,29 +41,6 @@ export default class ParkingSpot {
     getSize() {
       return this.spotSize;
     }
-
-    getLevel() {
-      console.log(this.level);
-      return this.level;
-    }
-  
-    print() {
-      if (this.vehicle === null) {
-        if (this.spotSize === 'Compact') {
-          process.stdout.write('c');
-        } else if (this.spotSize === 'Large') {
-          process.stdout.write('l');
-        } else if (this.spotSize === 'Motorcycle') {
-          process.stdout.write('m');
-        }
-      } else {
-        this.vehicle.print();
-      }
-    }
-  
-    getRow() {
-      return this.row;
-    }
   
     getSpotNumber() {
       return this.spotNumber;

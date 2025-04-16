@@ -12,8 +12,4 @@ export default class Vehicle {
     parkInSpot(spot) {
       console.log(`${this.type} parked in spot ${spot.getSpotNumber()}`);
     }
-  
-    print() {
-      console.log(`Vehicle Type: ${this.type}`);
-    }
 }

@@ -45,56 +45,6 @@ export default class Level {
       return this.parkStartingAtSpot(spotNumber, vehicle);
     }
   
-    parkStartingAtSpot(spotNumber, vehicle) {
-      vehicle.clearSpot();
-      let success = true;
-  
-      for (let i = spotNumber; i < spotNumber + vehicle.spotsNeeded; i++) {
-        success &= this.spots[i].park(vehicle);
-      }
-  
-      this.availableSpots -= vehicle.spotsNeeded;
-      return success;
-    }
-  
-    findAvailableSpots(vehicle) {
-      const spotsNeeded = vehicle.getSpotsNeeded();
-      let lastRow = -1;
-      let spotsFound = 0;
-  
-      for (let i = 0; i < this.spots.length; i++) {
-        const spot = this.spots[i];
-        if (lastRow !== spot.getRow()) {
-          spotsFound = 0;
-          lastRow = spot.getRow();
-        }
-  
-        if (spot.canFitVehicle(vehicle)) {
-          spotsFound++;
-        } else {
-          spotsFound = 0;
-        }
-  
-        if (spotsFound === spotsNeeded) {
-          return i - (spotsNeeded - 1);
-        }
-      }
-  
-      return -1;
-    }
-  
-    print() {
-      let lastRow = -1;
-      for (let i = 0; i < this.spots.length; i++) {
-        const spot = this.spots[i];
-        if (spot.getRow() !== lastRow) {
-          console.log('');
-          lastRow = spot.getRow();
-        }
-        spot.print();
-      }
-    }
-  
     spotFreed() {
       this.availableSpots++;
     }
